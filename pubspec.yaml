@@ -1,0 +1,30 @@
+name: book_store_app
+description: A new Flutter application.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.0
+  font_awesome_flutter:
+  firebase_auth: ^0.11.0
+  cloud_firestore: ^0.11.0
+  firebase_core: ^0.4.0
+  firebase_analytics: ^5.0.2
+  dio: ^3.0.9
+  connectivity: ^0.4.8+2
+  shared_preferences: ^0.5.12+4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

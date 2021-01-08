@@ -1,0 +1,205 @@
+import 'package:book_store_app/pages/main_screen.dart';
+import 'package:book_store_app/pages/user_auth/register_page.dart';
+import 'package:book_store_app/widgets/password_error_dialog.dart';
+import 'package:book_store_app/widgets/unregister_error_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+class LoginPage extends StatefulWidget {
+  static const routeName = '/login';
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  String errorMsg = "";
+
+  final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
+  TextEditingController emailInputController;
+  TextEditingController pwdInputController;
+
+  @override
+  void initState() {
+    emailInputController = new TextEditingController();
+    pwdInputController = new TextEditingController();
+    super.initState();
+  }
+
+  String emailValidator(String value) {
+    Pattern pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(value)) {
+      return 'Email format is invalid';
+    } else {
+      return null;
+    }
+  }
+
+  String pwdValidator(String value) {
+    if (value.length < 8) {
+      return 'Password must be longer than 8 characters';
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/book.jpeg"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: <Widget>[
+          Container(
+            color: Colors.black54,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  margin: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.brown.shade200,
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListView(
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.all(16.0),
+                          children: <Widget>[
+                            TextFormField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Email*',
+                                  hintText: "sawthandar1998.pw@gmail.com"),
+                              controller: emailInputController,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: emailValidator,
+                            ),
+                            const SizedBox(height: 10.0),
+                            TextFormField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Password*',
+                                  hintText: "*******"),
+                              controller: pwdInputController,
+                              obscureText: true,
+                              validator: pwdValidator,
+                            ),
+                            const SizedBox(height: 10.0),
+                            RaisedButton(
+                                color: Colors.brown,
+                                textColor: Colors.brown.shade200,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                child: Text("Login"),
+                                onPressed: () async {
+                                  try {
+                                    FirebaseUser user = await FirebaseAuth
+                                        .instance
+                                        .signInWithEmailAndPassword(
+                                          email: emailInputController.text,
+                                          password: pwdInputController.text,
+                                        )
+                                        .then((currentUser) => showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    backgroundColor:
+                                                        Colors.brown.shade200,
+                                                    title: Text("Welcome"),
+                                                    content: Text(
+                                                        "Login Successful!"),
+                                                    actions: <Widget>[
+                                                      FlatButton(
+                                                        child: Text("OK"),
+                                                        onPressed: () {
+                                                          emailInputController
+                                                              .text = "";
+                                                          pwdInputController
+                                                              .text = "";
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          Navigator
+                                                              .pushReplacement(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        MainScreen(
+                                                                          name:
+                                                                              currentUser.displayName,
+                                                                          uid: currentUser
+                                                                              .uid,
+                                                                        )),
+                                                          );
+                                                        },
+                                                      )
+                                                    ],
+                                                  );
+                                                }) //show dialog
+                                            );
+                                  } catch (e) {
+                                    switch (e.code) {
+                                      case "ERROR_USER_NOT_FOUND":
+                                        {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      UnregisterErrorDialog()));
+                                        }
+                                        break;
+
+                                      case "ERROR_WRONG_PASSWORD":
+                                        {
+                                          pwdInputController.text = "";
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      PasswordErrorDialog()));
+                                        }
+                                        break;
+                                    }
+                                  }
+                                }),
+                            Text(
+                              "Don't have an account yet?",
+                              textAlign: TextAlign.center,
+                            ),
+                            FlatButton(
+                                child: Text(
+                                  "Register here!",
+                                  textAlign: TextAlign.center,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => RegisterPage()),
+                                  );
+                                })
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    ));
+  }
+}

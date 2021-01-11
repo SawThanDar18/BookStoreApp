@@ -1,10 +1,12 @@
 import 'package:book_store_app/pages/main_screen.dart';
+import 'package:book_store_app/pages/user_auth/forgot_password.dart';
 import 'package:book_store_app/pages/user_auth/register_page.dart';
-import 'package:book_store_app/widgets/password_error_dialog.dart';
-import 'package:book_store_app/widgets/unregister_error_dialog.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:book_store_app/utils/check_error.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flushbar/flushbar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
@@ -14,6 +16,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String errorMsg = "";
+  bool _passwordVisible = false;
 
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
   TextEditingController emailInputController;
@@ -23,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     emailInputController = new TextEditingController();
     pwdInputController = new TextEditingController();
+    _passwordVisible = false;
     super.initState();
   }
 
@@ -87,11 +91,23 @@ class _LoginPageState extends State<LoginPage> {
                             const SizedBox(height: 10.0),
                             TextFormField(
                               decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _passwordVisible
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _passwordVisible = !_passwordVisible;
+                                      });
+                                    },
+                                  ),
                                   border: OutlineInputBorder(),
                                   labelText: 'Password*',
                                   hintText: "*******"),
                               controller: pwdInputController,
-                              obscureText: true,
+                              obscureText: !_passwordVisible,
                               validator: pwdValidator,
                             ),
                             const SizedBox(height: 10.0),
@@ -151,7 +167,30 @@ class _LoginPageState extends State<LoginPage> {
                                                 }) //show dialog
                                             );
                                   } catch (e) {
-                                    switch (e.code) {
+                                    String exception = Auth.getExceptionText(e);
+
+                                    Flushbar(
+                                      backgroundColor: Colors.brown,
+                                      title: "Network Error",
+                                      message: exception,
+                                      duration: Duration(seconds: 10),
+                                    )..show(context);
+
+                                    Flushbar(
+                                      backgroundColor: Colors.brown,
+                                      title: "Invalid Email Error",
+                                      message: exception,
+                                      duration: Duration(seconds: 10),
+                                    )..show(context);
+
+                                    Flushbar(
+                                      backgroundColor: Colors.brown,
+                                      title: "Invalid Password Error",
+                                      message: exception,
+                                      duration: Duration(seconds: 10),
+                                    )..show(context);
+
+                                    /*switch (e.code) {
                                       case "ERROR_USER_NOT_FOUND":
                                         {
                                           Navigator.of(context).push(
@@ -170,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                                                       PasswordErrorDialog()));
                                         }
                                         break;
-                                    }
+                                    }*/
                                   }
                                 }),
                             Text(
@@ -188,6 +227,22 @@ class _LoginPageState extends State<LoginPage> {
                                     MaterialPageRoute(
                                         builder: (context) => RegisterPage()),
                                   );
+                                }),
+                            InkWell(
+                                child: Text(
+                                  "Forgot Password",
+                                  textAlign: TextAlign.end,
+                                  style: TextStyle(
+                                      color: Colors.brown,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ForgotPasswordPage()),
+                                  );
                                 })
                           ],
                         ),
@@ -201,5 +256,28 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     ));
+  }
+
+  static String getExceptionText(Exception e) {
+    if (e is PlatformException) {
+      switch (e.message) {
+        case 'There is no user record corresponding to this identifier. The user may have been deleted.':
+          return 'User with this email address not found.';
+          break;
+        case 'The password is invalid or the user does not have a password.':
+          return 'Invalid password.';
+          break;
+        case 'A network error (such as timeout, interrupted connection or unreachable host) has occurred.':
+          return 'No internet connection.';
+          break;
+        case 'The email address is already in use by another account.':
+          return 'This email address already has an account.';
+          break;
+        default:
+          return 'Unknown error occured.';
+      }
+    } else {
+      return 'Unknown error occured.';
+    }
   }
 }

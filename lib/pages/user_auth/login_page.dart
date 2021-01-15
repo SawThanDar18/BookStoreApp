@@ -2,6 +2,8 @@ import 'package:book_store_app/pages/main_screen.dart';
 import 'package:book_store_app/pages/user_auth/forgot_password.dart';
 import 'package:book_store_app/pages/user_auth/register_page.dart';
 import 'package:book_store_app/utils/check_error.dart';
+import 'package:book_store_app/widgets/password_error_dialog.dart';
+import 'package:book_store_app/widgets/unregister_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -176,21 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                                       duration: Duration(seconds: 10),
                                     )..show(context);
 
-                                    Flushbar(
-                                      backgroundColor: Colors.brown,
-                                      title: "Invalid Email Error",
-                                      message: exception,
-                                      duration: Duration(seconds: 10),
-                                    )..show(context);
-
-                                    Flushbar(
-                                      backgroundColor: Colors.brown,
-                                      title: "Invalid Password Error",
-                                      message: exception,
-                                      duration: Duration(seconds: 10),
-                                    )..show(context);
-
-                                    /*switch (e.code) {
+                                    switch (e.code) {
                                       case "ERROR_USER_NOT_FOUND":
                                         {
                                           Navigator.of(context).push(
@@ -199,7 +187,6 @@ class _LoginPageState extends State<LoginPage> {
                                                       UnregisterErrorDialog()));
                                         }
                                         break;
-
                                       case "ERROR_WRONG_PASSWORD":
                                         {
                                           pwdInputController.text = "";
@@ -209,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
                                                       PasswordErrorDialog()));
                                         }
                                         break;
-                                    }*/
+                                    }
                                   }
                                 }),
                             Text(
@@ -257,27 +244,17 @@ class _LoginPageState extends State<LoginPage> {
       ),
     ));
   }
-
-  static String getExceptionText(Exception e) {
-    if (e is PlatformException) {
-      switch (e.message) {
-        case 'There is no user record corresponding to this identifier. The user may have been deleted.':
-          return 'User with this email address not found.';
-          break;
-        case 'The password is invalid or the user does not have a password.':
-          return 'Invalid password.';
-          break;
-        case 'A network error (such as timeout, interrupted connection or unreachable host) has occurred.':
-          return 'No internet connection.';
-          break;
-        case 'The email address is already in use by another account.':
-          return 'This email address already has an account.';
-          break;
-        default:
-          return 'Unknown error occured.';
-      }
-    } else {
-      return 'Unknown error occured.';
-    }
-  }
 }
+/*Navigator.pushReplacement(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            MainScreen(
+                                                              name: currentUser
+                                                                  .displayName,
+                                                              uid: currentUser
+                                                                  .uid,
+                                                            ))))
+                                            .catchError((error) => print(error))
+                                            .catchError(
+                                                (error) => print(error)));*/
